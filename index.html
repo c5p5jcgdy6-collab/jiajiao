@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>乐帮家教</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f2f3f5;color:#222;font-size:15px}
+#login{position:fixed;inset:0;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99}
+#login h1{font-size:24px;margin-bottom:24px;color:#1a9c5b}
+#login input{width:200px;padding:12px;border:1px solid #ddd;border-radius:10px;font-size:18px;text-align:center;letter-spacing:6px}
+#login button{margin-top:16px;width:200px;padding:12px;background:#1a9c5b;color:#fff;border:0;border-radius:10px;font-size:16px}
+#app{display:none;padding-bottom:70px}
+header{background:#1a9c5b;color:#fff;padding:14px 16px;font-size:18px;font-weight:600;position:sticky;top:0;z-index:10}
+.tabs{display:flex;background:#fff;position:sticky;top:52px;z-index:9;overflow-x:auto;border-bottom:1px solid #eee}
+.tabs div{flex:1;min-width:64px;text-align:center;padding:12px 4px;color:#666;font-size:14px;white-space:nowrap}
+.tabs div.on{color:#1a9c5b;border-bottom:2px solid #1a9c5b;font-weight:600}
+.page{display:none;padding:12px}
+.page.on{display:block}
+.btn{background:#1a9c5b;color:#fff;border:0;border-radius:8px;padding:10px 16px;font-size:15px}
+.btn.gray{background:#888}
+.btn.red{background:#e55}
+.card{background:#fff;border-radius:10px;padding:12px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.card h3{margin:0 0 6px;font-size:16px}
+.card p{margin:3px 0;color:#666;font-size:13px}
+.card .row{display:flex;justify-content:space-between;align-items:center}
+.card .row span{color:#1a9c5b;font-weight:600}
+.card .ops{margin-top:8px;display:flex;gap:8px}
+.card .ops button{font-size:12px;padding:5px 10px;border-radius:6px;border:1px solid #ddd;background:#fff;color:#666}
+.form{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.form.on{display:flex}
+.form .box{background:#fff;border-radius:12px;padding:16px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto}
+.form .box h3{margin:0 0 12px}
+.form input,.form select,.form textarea{width:100%;padding:9px;margin-bottom:9px;border:1px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit}
+.form .btns{display:flex;gap:10px;margin-top:6px}
+.form .btns button{flex:1;padding:11px;border-radius:8px;border:0;font-size:15px}
+.stat{display:flex;gap:10px;margin-bottom:12px}
+.stat .s{flex:1;background:#fff;border-radius:10px;padding:14px;text-align:center}
+.stat .s b{display:block;font-size:22px;color:#1a9c5b;margin-bottom:4px}
+.stat .s span{font-size:12px;color:#888}
+.empty{text-align:center;color:#aaa;padding:30px 0;font-size:14px}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.topbar h2{margin:0;font-size:16px}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <h1>乐帮家教</h1>
+  <input id="pwd" type="password" maxlength="6" placeholder="输入密码">
+  <button onclick="doLogin()">进入</button>
+</div>
+
+<div id="app">
+  <header>乐帮家教</header>
+  <div class="tabs">
+    <div class="on" onclick="tab(0)">老师</div>
+    <div onclick="tab(1)">家长</div>
+    <div onclick="tab(2)">订单</div>
+    <div onclick="tab(3)">上课</div>
+    <div onclick="tab(4)">统计</div>
+  </div>
+
+  <div class="page on" id="p0">
+    <div class="topbar"><h2>老师列表</h2><button class="btn" onclick="openTeacher()">+ 添加</button></div>
+    <div id="teacherList"></div>
+  </div>
+
+  <div class="page" id="p1">
+    <div class="topbar"><h2>家长/学生</h2><button class="btn" onclick="openParent()">+ 添加</button></div>
+    <div id="parentList"></div>
+  </div>
+
+  <div class="page" id="p2">
+    <div class="topbar"><h2>订单</h2><button class="btn" onclick="openOrder()">+ 添加</button></div>
+    <div id="orderList"></div>
+  </div>
+
+  <div class="page" id="p3">
+    <div class="topbar"><h2>上课记录</h2><button class="btn" onclick="openLesson()">+ 添加</button></div>
+    <div id="lessonList"></div>
+  </div>
+
+  <div class="page" id="p4">
+    <div class="topbar"><h2>收入统计</h2></div>
+    <div class="stat">
+      <div class="s"><b id="s_total">0</b><span>总抽成(元)</span></div>
+      <div class="s"><b id="s_month">0</b><span>本月抽成(元)</span></div>
+    </div>
+    <div class="stat">
+      <div class="s"><b id="s_orders">0</b><span>订单数</span></div>
+      <div class="s"><b id="s_lessons">0</b><span>上课次数</span></div>
+    </div>
+    <div class="card"><h3>说明</h3><p>抽成 = 课时费 × 比例（每单自己填）</p><p>数据存在云端，换手机也能看</p></div>
+  </div>
+</div>
+
+<!-- 老师表单 -->
+<div class="form" id="f_teacher">
+  <div class="box">
+    <h3 id="t_title">添加老师</h3>
+    <input type="hidden" id="t_id">
+    <input id="t_name" placeholder="姓名">
+    <input id="t_phone" placeholder="电话" type="tel">
+    <select id="t_gender"><option value="">性别</option><option>男</option><option>女</option></select>
+    <input id="t_school" placeholder="学校/机构">
+    <input id="t_subjects" placeholder="能教科目(如 数学 英语)">
+    <input id="t_grades" placeholder="能教年级(如 初中 高中)">
+    <input id="t_rate" placeholder="报价(元/小时)" type="number">
+    <input id="t_free" placeholder="空闲时间">
+    <textarea id="t_note" placeholder="备注" rows="2"></textarea>
+    <div class="btns"><button class="btn gray" onclick="closeForm('f_teacher')">取消</button><button class="btn" onclick="saveTeacher()">保存</button></div>
+  </div>
+</div>
+
+<!-- 家长表单 -->
+<div class="form" id="f_parent">
+  <div class="box">
+    <h3 id="p_title">添加家长</h3>
+    <input type="hidden" id="p_id">
+    <input id="p_name" placeholder="家长姓名">
+    <input id="p_phone" placeholder="电话" type="tel">
+    <input id="p_grade" placeholder="学生年级">
+    <input id="p_subjects" placeholder="需求科目">
+    <input id="p_addr" placeholder="地址">
+    <input id="p_budget" placeholder="预算(元/小时)" type="number">
+    <textarea id="p_note" placeholder="备注" rows="2"></textarea>
+    <div class="btns"><button class="btn gray" onclick="closeForm('f_parent')">取消</button><button class="btn" onclick="saveParent()">保存</button></div>
+  </div>
+</div>
+
+<!-- 订单表单 -->
+<div class="form" id="f_order">
+  <div class="box">
+    <h3 id="o_title">添加订单</h3>
+    <input type="hidden" id="o_id">
+    <select id="o_teacher"></select>
+    <select id="o_parent"></select>
+    <input id="o_fee" placeholder="课时费(元/小时)" type="number">
+    <input id="o_comm" placeholder="抽成(元/小时)" type="number">
+    <input id="o_received" placeholder="已收(元)" type="number">
+    <select id="o_status"><option>待上课</option><option>进行中</option><option>已结束</option></select>
+    <input id="o_date" type="date">
+    <div class="btns"><button class="btn gray" onclick="closeForm('f_order')">取消</button><button class="btn" onclick="saveOrder()">保存</button></div>
+  </div>
+</div>
+
+<!-- 上课表单 -->
+<div class="form" id="f_lesson">
+  <div class="box">
+    <h3 id="l_title">添加上课记录</h3>
+    <input type="hidden" id="l_id">
+    <select id="l_order"></select>
+    <input id="l_date" type="date">
+    <input id="l_hours" placeholder="时长(小时)" type="number" step="0.5">
+    <input id="l_amount" placeholder="金额(元)" type="number">
+    <select id="l_paid"><option value="false">未结款</option><option value="true">已结款</option></select>
+    <div class="btns"><button class="btn gray" onclick="closeForm('f_lesson')">取消</button><button class="btn" onclick="saveLesson()">保存</button></div>
+  </div>
+</div>
+
+<script>
+const URL="https://ccmczkarxkwrjdsyiiox.supabase.co";
+const KEY="sb_publishable_3jEgAQqURE6AOyrKIhnE_w_D5p2iF99";
+const H={"apikey":KEY,"Authorization":"Bearer "+KEY,"Content-Type":"application/json"};
+const PWD="123456";
+
+let teachers=[],parents=[],orders=[],lessons=[];
+
+function doLogin(){
+  if(document.getElementById('pwd').value===PWD){
+    document.getElementById('login').style.display='none';
+    document.getElementById('app').style.display='block';
+    loadAll();
+  }else alert('密码错误');
+}
+function tab(i){
+  document.querySelectorAll('.tabs div').forEach((d,x)=>d.classList.toggle('on',x===i));
+  document.querySelectorAll('.page').forEach((p,x)=>p.classList.toggle('on',x===i));
+  if(i===4) stat();
+}
+async function api(path,opt){
+  const r=await fetch(URL+"/rest/v1/"+path,opt);
+  if(!r.ok){alert('操作失败:'+r.status);throw 0}
+  return r.status===204?null:r.json();
+}
+async function loadAll(){
+  teachers=await api("teachers?select=*&order=id.desc")||[];
+  parents=await api("parents?select=*&order=id.desc")||[];
+  orders=await api("orders?select=*&order=id.desc")||[];
+  lessons=await api("lessons?select=*&order=id.desc")||[];
+  renderTeachers();renderParents();renderOrders();renderLessons();
+}
+
+/* ===== 老师 ===== */
+function renderTeachers(){
+  const el=document.getElementById('teacherList');
+  if(!teachers.length){el.innerHTML='<div class="empty">还没有老师，点右上角添加</div>';return}
+  el.innerHTML=teachers.map(t=>`<div class="card">
+    <div class="row"><h3>${t.name||''} ${t.gender||''}</h3><span>${t.rate||0}元/时</span></div>
+    <p>📞 ${t.phone||'-'} · ${t.school||'-'}</p>
+    <p>📚 ${t.subjects||'-'} · ${t.grades||'-'}</p>
+    <p>🕐 ${t.free_time||'-'}</p>
+    ${t.note?'<p>📝 '+t.note+'</p>':''}
+    <div class="ops"><button onclick="openTeacher(${t.id})">编辑</button><button onclick="del('teachers',${t.id})">删除</button></div>
+  </div>`).join('');
+}
+function openTeacher(id){
+  const f=document.getElementById('f_teacher');
+  document.getElementById('t_title').textContent=id?'编辑老师':'添加老师';
+  if(id){const t=teachers.find(x=>x.id===id);
+    t_id.value=t.id;t_name.value=t.name||'';t_phone.value=t.phone||'';t_gender.value=t.gender||'';t_school.value=t.school||'';t_subjects.value=t.subjects||'';t_grades.value=t.grades||'';t_rate.value=t.rate||'';t_free.value=t.free_time||'';t_note.value=t.note||'';
+  }else{['t_id','t_name','t_phone','t_gender','t_school','t_subjects','t_grades','t_rate','t_free','t_note'].forEach(i=>document.getElementById(i).value='')}
+  f.classList.add('on');
+}
+async function saveTeacher(){
+  const d={name:t_name.value,phone:t_phone.value,gender:t_gender.value,school:t_school.value,subjects:t_subjects.value,grades:t_grades.value,rate:+t_rate.value||0,free_time:t_free.value,note:t_note.value};
+  if(t_id.value){await api("teachers?id=eq."+t_id.value,{method:"PATCH",headers:H,body:JSON.stringify(d)})}
+  else{await api("teachers",{method:"POST",headers:H,body:JSON.stringify(d)})}
+  closeForm('f_teacher');loadAll();
+}
+
+/* ===== 家长 ===== */
+function renderParents(){
+  const el=document.getElementById('parentList');
+  if(!parents.length){el.innerHTML='<div class="empty">还没有家长，点右上角添加</div>';return}
+  el.innerHTML=parents.map(p=>`<div class="card">
+    <div class="row"><h3>${p.name||''}</h3><span>${p.budget||0}元/时</span></div>
+    <p>📞 ${p.phone||'-'} · ${p.student_grade||'-'}</p>
+    <p>📚 ${p.subjects||'-'}</p>
+    <p>📍 ${p.address||'-'}</p>
+    ${p.note?'<p>📝 '+p.note+'</p>':''}
+    <div class="ops"><button onclick="openParent(${p.id})">编辑</button><button onclick="del('parents',${p.id})">删除</button></div>
+  </div>`).join('');
+}
+function openParent(id){
+  const f=document.getElementById('f_parent');
+  document.getElementById('p_title').textContent=id?'编辑家长':'添加家长';
+  if(id){const p=parents.find(x=>x.id===id);
+    p_id.value=p.id;p_name.value=p.name||'';p_phone.value=p.phone||'';p_grade.value=p.student_grade||'';p_subjects.value=p.subjects||'';p_addr.value=p.address||'';p_budget.value=p.budget||'';p_note.value=p.note||'';
+  }else{['p_id','p_name','p_phone','p_grade','p_subjects','p_addr','p_budget','p_note'].forEach(i=>document.getElementById(i).value='')}
+  f.classList.add('on');
+}
+async function saveParent(){
+  const d={name:p_name.value,phone:p_phone.value,student_grade:p_grade.value,subjects:p_subjects.value,address:p_addr.value,budget:+p_budget.value||0,note:p_note.value};
+  if(p_id.value){await api("parents?id=eq."+p_id.value,{method:"PATCH",headers:H,body:JSON.stringify(d)})}
+  else{await api("parents",{method:"POST",headers:H,body:JSON.stringify(d)})}
+  closeForm('f_parent');loadAll();
+}
+
+/* ===== 订单 ===== */
+function tname(id){const t=teachers.find(x=>x.id===id);return t?t.name:'-'}
+function pname(id){const p=parents.find(x=>x.id===id);return p?p.name:'-'}
+function renderOrders(){
+  const el=document.getElementById('orderList');
+  if(!orders.length){el.innerHTML='<div class="empty">还没有订单，点右上角添加</div>';return}
+  el.innerHTML=orders.map(o=>`<div class="card">
+    <div class="row"><h3>${tname(o.teacher_id)} → ${pname(o.parent_id)}</h3><span>${o.status||''}</span></div>
+    <p>课时费 ${o.fee||0}元/时 · 抽成 ${o.commission||0}元/时</p>
+    <p>已收 ${o.received||0}元 · 开始 ${o.start_date||'-'}</p>
+    <div class="ops"><button onclick="openOrder(${o.id})">编辑</button><button onclick="del('orders',${o.id})">删除</button></div>
+  </div>`).join('');
+}
+function openOrder(id){
+  const f=document.getElementById('f_order');
+  o_teacher.innerHTML=teachers.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+  o_parent.innerHTML=parents.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  document.getElementById('o_title').textContent=id?'编辑订单':'添加订单';
+  if(id){const o=orders.find(x=>x.id===id);
+    o_id.value=o.id;o_teacher.value=o.teacher_id;o_parent.value=o.parent_id;o_fee.value=o.fee||'';o_comm.value=o.commission||'';o_received.value=o.received||'';o_status.value=o.status||'待上课';o_date.value=o.start_date||'';
+  }else{['o_id','o_fee','o_comm','o_received','o_date'].forEach(i=>document.getElementById(i).value='');o_status.value='待上课';o_date.value=new Date().toISOString().slice(0,10)}
+  f.classList.add('on');
+}
+async function saveOrder(){
+  const d={teacher_id:+o_teacher.value,parent_id:+o_parent.value,fee:+o_fee.value||0,commission:+o_comm.value||0,received:+o_received.value||0,status:o_status.value,start_date:o_date.value||null};
+  if(o_id.value){await api("orders?id=eq."+o_id.value,{method:"PATCH",headers:H,body:JSON.stringify(d)})}
+  else{await api("orders",{method:"POST",headers:H,body:JSON.stringify(d)})}
+  closeForm('f_order');loadAll();
+}
+
+/* ===== 上课 ===== */
+function oname(id){const o=orders.find(x=>x.id===id);return o?tname(o.teacher_id)+'→'+pname(o.parent_id):'-'}
+function renderLessons(){
+  const el=document.getElementById('lessonList');
+  if(!lessons.length){el.innerHTML='<div class="empty">还没有上课记录，点右上角添加</div>';return}
+  el.innerHTML=lessons.map(l=>`<div class="card">
+    <div class="row"><h3>${oname(l.order_id)}</h3><span>${l.amount||0}元</span></div>
+    <p>📅 ${l.lesson_date||'-'} · ${l.hours||0}小时</p>
+    <p>${l.paid?'✅ 已结款':'⏳ 未结款'}</p>
+    <div class="ops"><button onclick="openLesson(${l.id})">编辑</button><button onclick="del('lessons',${l.id})">删除</button></div>
+  </div>`).join('');
+}
+function openLesson(id){
+  const f=document.getElementById('f_lesson');
+  l_order.innerHTML=orders.map(o=>`<option value="${o.id}">${tname(o.teacher_id)}→${pname(o.parent_id)}</option>`).join('');
+  document.getElementById('l_title').textContent=id?'编辑上课记录':'添加上课记录';
+  if(id){const l=lessons.find(x=>x.id===id);
+    l_id.value=l.id;l_order.value=l.order_id;l_date.value=l.lesson_date||'';l_hours.value=l.hours||'';l_amount.value=l.amount||'';l_paid.value=String(l.paid);
+  }else{['l_id','l_hours','l_amount'].forEach(i=>document.getElementById(i).value='');l_date.value=new Date().toISOString().slice(0,10);l_paid.value='false'}
+  f.classList.add('on');
+}
+async function saveLesson(){
+  const d={order_id:+l_order.value,lesson_date:l_date.value||null,hours:+l_hours.value||0,amount:+l_amount.value||0,paid:l_paid.value==='true'};
+  if(l_id.value){await api("lessons?id=eq."+l_id.value,{method:"PATCH",headers:H,body:JSON.stringify(d)})}
+  else{await api("lessons",{method:"POST",headers:H,body:JSON.stringify(d)})}
+  closeForm('f_lesson');loadAll();
+}
+
+/* ===== 通用 ===== */
+async function del(table,id){
+  if(!confirm('确定删除?'))return;
+  await api(table+"?id=eq."+id,{method:"DELETE",headers:H});
+  loadAll();
+}
+function closeForm(id){document.getElementById(id).classList.remove('on')}
+
+function stat(){
+  let total=0,month=0;
+  orders.forEach(o=>{
+    total+= (o.commission||0)*(o.received?1:0);
+  });
+  let sum=0,m=0,cnt=0;
+  lessons.forEach(l=>{
+    const o=orders.find(x=>x.id===l.order_id);
+    if(o){sum+=(o.commission||0)*(l.hours||0);cnt++;
+      const now=new Date().toISOString().slice(0,7);
+      if((l.lesson_date||'').slice(0,7)===now)m+=(o.commission||0)*(l.hours||0);
+    }
+  });
+  s_total.textContent=Math.round(sum);
+  s_month.textContent=Math.round(m);
+  s_orders.textContent=orders.length;
+  s_lessons.textContent=lessons.length;
+}
+</script>
+</body>
+</html>
