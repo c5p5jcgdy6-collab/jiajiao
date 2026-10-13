@@ -20,7 +20,6 @@ header{background:#1a9c5b;color:#fff;padding:14px 16px;font-size:18px;font-weigh
 .page.on{display:block}
 .btn{background:#1a9c5b;color:#fff;border:0;border-radius:8px;padding:10px 16px;font-size:15px}
 .btn.gray{background:#888}
-.btn.red{background:#e55}
 .card{background:#fff;border-radius:10px;padding:12px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .card h3{margin:0 0 6px;font-size:16px}
 .card p{margin:3px 0;color:#666;font-size:13px}
@@ -39,8 +38,8 @@ header{background:#1a9c5b;color:#fff;padding:14px 16px;font-size:18px;font-weigh
 .stat .s{flex:1;background:#fff;border-radius:10px;padding:14px;text-align:center}
 .stat .s b{display:block;font-size:22px;color:#1a9c5b;margin-bottom:4px}
 .stat .s span{font-size:12px;color:#888}
-.empty{text-align:center;color:#aaa;padding:30px 0;font-size:14px}
-.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.empty{text="-align:center;scolor:#aaa;padding:_30px 0less;font-size:14onspx}
+.topbar{display:">flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .topbar h2{margin:0;font-size:16px}
 </style>
 </head>
@@ -90,13 +89,12 @@ header{background:#1a9c5b;color:#fff;padding:14px 16px;font-size:18px;font-weigh
     </div>
     <div class="stat">
       <div class="s"><b id="s_orders">0</b><span>订单数</span></div>
-      <div class="s"><b id="s_lessons">0</b><span>上课次数</span></div>
+      <div class="s"><b id0</b><span>上课次数</span></div>
     </div>
-    <div class="card"><h3>说明</h3><p>抽成 = 课时费 × 比例（每单自己填）</p><p>数据存在云端，换手机也能看</p></div>
+    <div class="card"><h3>说明</h3><p>抽成 = 课时费 × 比例（每单自己填）</p><p>数据存在本机，换手机/清浏览器会丢，建议定期导出备份</p></div>
   </div>
 </div>
 
-<!-- 老师表单 -->
 <div class="form" id="f_teacher">
   <div class="box">
     <h3 id="t_title">添加老师</h3>
@@ -105,8 +103,8 @@ header{background:#1a9c5b;color:#fff;padding:14px 16px;font-size:18px;font-weigh
     <input id="t_phone" placeholder="电话" type="tel">
     <select id="t_gender"><option value="">性别</option><option>男</option><option>女</option></select>
     <input id="t_school" placeholder="学校/机构">
-    <input id="t_subjects" placeholder="能教科目(如 数学 英语)">
-    <input id="t_grades" placeholder="能教年级(如 初中 高中)">
+    <input id="t_subjects" placeholder="能教科目">
+    <input id="t_grades" placeholder="能教年级">
     <input id="t_rate" placeholder="报价(元/小时)" type="number">
     <input id="t_free" placeholder="空闲时间">
     <textarea id="t_note" placeholder="备注" rows="2"></textarea>
@@ -114,7 +112,6 @@ header{background:#1a9c5b;color:#fff;padding:14px 16px;font-size:18px;font-weigh
   </div>
 </div>
 
-<!-- 家长表单 -->
 <div class="form" id="f_parent">
   <div class="box">
     <h3 id="p_title">添加家长</h3>
@@ -130,7 +127,6 @@ header{background:#1a9c5b;color:#fff;padding:14px 16px;font-size:18px;font-weigh
   </div>
 </div>
 
-<!-- 订单表单 -->
 <div class="form" id="f_order">
   <div class="box">
     <h3 id="o_title">添加订单</h3>
@@ -146,7 +142,6 @@ header{background:#1a9c5b;color:#fff;padding:14px 16px;font-size:18px;font-weigh
   </div>
 </div>
 
-<!-- 上课表单 -->
 <div class="form" id="f_lesson">
   <div class="box">
     <h3 id="l_title">添加上课记录</h3>
@@ -161,12 +156,11 @@ header{background:#1a9c5b;color:#fff;padding:14px 16px;font-size:18px;font-weigh
 </div>
 
 <script>
-const URL="https://ccmczkarxkwrjdsyiiox.supabase.co";
-const KEY="sb_publishable_3jEgAQqURE6AOyrKIhnE_w_D5p2iF99";
-const H={"apikey":KEY,"Authorization":"Bearer "+KEY,"Content-Type":"application/json"};
 const PWD="123456";
-
 let teachers=[],parents=[],orders=[],lessons=[];
+
+function load(k,def){try{return JSON.parse(localStorage.getItem(k))||def}catch(e){return def}}
+function save(k,v){localStorage.setItem(k,JSON.stringify(v))}
 
 function doLogin(){
   if(document.getElementById('pwd').value===PWD){
@@ -180,20 +174,16 @@ function tab(i){
   document.querySelectorAll('.page').forEach((p,x)=>p.classList.toggle('on',x===i));
   if(i===4) stat();
 }
-async function api(path,opt){
-  const r=await fetch(URL+"/rest/v1/"+path,opt);
-  if(!r.ok){alert('操作失败:'+r.status);throw 0}
-  return r.status===204?null:r.json();
-}
-async function loadAll(){
-  teachers=await api("teachers?select=*&order=id.desc")||[];
-  parents=await api("parents?select=*&order=id.desc")||[];
-  orders=await api("orders?select=*&order=id.desc")||[];
-  lessons=await api("lessons?select=*&order=id.desc")||[];
+function loadAll(){
+  teachers=load('teachers',[]);
+  parents=load('parents',[]);
+  orders=load('orders',[]);
+  lessons=load('lessons',[]);
   renderTeachers();renderParents();renderOrders();renderLessons();
 }
+function nextId(arr){return arr.length?Math.max(...arr.map(x=>x.id))+1:1}
 
-/* ===== 老师 ===== */
+/* 老师 */
 function renderTeachers(){
   const el=document.getElementById('teacherList');
   if(!teachers.length){el.innerHTML='<div class="empty">还没有老师，点右上角添加</div>';return}
@@ -214,14 +204,14 @@ function openTeacher(id){
   }else{['t_id','t_name','t_phone','t_gender','t_school','t_subjects','t_grades','t_rate','t_free','t_note'].forEach(i=>document.getElementById(i).value='')}
   f.classList.add('on');
 }
-async function saveTeacher(){
+function saveTeacher(){
   const d={name:t_name.value,phone:t_phone.value,gender:t_gender.value,school:t_school.value,subjects:t_subjects.value,grades:t_grades.value,rate:+t_rate.value||0,free_time:t_free.value,note:t_note.value};
-  if(t_id.value){await api("teachers?id=eq."+t_id.value,{method:"PATCH",headers:H,body:JSON.stringify(d)})}
-  else{await api("teachers",{method:"POST",headers:H,body:JSON.stringify(d)})}
-  closeForm('f_teacher');loadAll();
+  if(t_id.value){const i=teachers.findIndex(x=>x.id==t_id.value);teachers[i]={...teachers[i],...d}}
+  else{d.id=nextId(teachers);teachers.unshift(d)}
+  save('teachers',teachers);closeForm('f_teacher');loadAll();
 }
 
-/* ===== 家长 ===== */
+/* 家长 */
 function renderParents(){
   const el=document.getElementById('parentList');
   if(!parents.length){el.innerHTML='<div class="empty">还没有家长，点右上角添加</div>';return}
@@ -242,16 +232,16 @@ function openParent(id){
   }else{['p_id','p_name','p_phone','p_grade','p_subjects','p_addr','p_budget','p_note'].forEach(i=>document.getElementById(i).value='')}
   f.classList.add('on');
 }
-async function saveParent(){
+function saveParent(){
   const d={name:p_name.value,phone:p_phone.value,student_grade:p_grade.value,subjects:p_subjects.value,address:p_addr.value,budget:+p_budget.value||0,note:p_note.value};
-  if(p_id.value){await api("parents?id=eq."+p_id.value,{method:"PATCH",headers:H,body:JSON.stringify(d)})}
-  else{await api("parents",{method:"POST",headers:H,body:JSON.stringify(d)})}
-  closeForm('f_parent');loadAll();
+  if(p_id.value){const i=parents.findIndex(x=>x.id==p_id.value);parents[i]={...parents[i],...d}}
+  else{d.id=nextId(parents);parents.unshift(d)}
+  save('parents',parents);closeForm('f_parent');loadAll();
 }
 
-/* ===== 订单 ===== */
-function tname(id){const t=teachers.find(x=>x.id===id);return t?t.name:'-'}
-function pname(id){const p=parents.find(x=>x.id===id);return p?p.name:'-'}
+/* 订单 */
+function tname(id){const t=teachers.find(x=>x.id==id);return t?t.name:'-'}
+function pname(id){const p=parents.find(x=>x.id==id);return p?p.name:'-'}
 function renderOrders(){
   const el=document.getElementById('orderList');
   if(!orders.length){el.innerHTML='<div class="empty">还没有订单，点右上角添加</div>';return}
@@ -269,18 +259,18 @@ function openOrder(id){
   document.getElementById('o_title').textContent=id?'编辑订单':'添加订单';
   if(id){const o=orders.find(x=>x.id===id);
     o_id.value=o.id;o_teacher.value=o.teacher_id;o_parent.value=o.parent_id;o_fee.value=o.fee||'';o_comm.value=o.commission||'';o_received.value=o.received||'';o_status.value=o.status||'待上课';o_date.value=o.start_date||'';
-  }else{['o_id','o_fee','o_comm','o_received','o_date'].forEach(i=>document.getElementById(i).value='');o_status.value='待上课';o_date.value=new Date().toISOString().slice(0,10)}
+  }else{['o_id','o_fee','o_comm','o_received'].forEach(i=>document.getElementById(i).value='');o_status.value='待上课';o_date.value=new Date().toISOString().slice(0,10)}
   f.classList.add('on');
 }
-async function saveOrder(){
+function saveOrder(){
   const d={teacher_id:+o_teacher.value,parent_id:+o_parent.value,fee:+o_fee.value||0,commission:+o_comm.value||0,received:+o_received.value||0,status:o_status.value,start_date:o_date.value||null};
-  if(o_id.value){await api("orders?id=eq."+o_id.value,{method:"PATCH",headers:H,body:JSON.stringify(d)})}
-  else{await api("orders",{method:"POST",headers:H,body:JSON.stringify(d)})}
-  closeForm('f_order');loadAll();
+  if(o_id.value){const i=orders.findIndex(x=>x.id==o_id.value);orders[i]={...orders[i],...d}}
+  else{d.id=nextId(orders);orders.unshift(d)}
+  save('orders',orders);closeForm('f_order');loadAll();
 }
 
-/* ===== 上课 ===== */
-function oname(id){const o=orders.find(x=>x.id===id);return o?tname(o.teacher_id)+'→'+pname(o.parent_id):'-'}
+/* 上课 */
+function oname(id){const o=orders.find(x=>x.id==id);return o?tname(o.teacher_id)+'→'+pname(o.parent_id):'-'}
 function renderLessons(){
   const el=document.getElementById('lessonList');
   if(!lessons.length){el.innerHTML='<div class="empty">还没有上课记录，点右上角添加</div>';return}
@@ -300,32 +290,28 @@ function openLesson(id){
   }else{['l_id','l_hours','l_amount'].forEach(i=>document.getElementById(i).value='');l_date.value=new Date().toISOString().slice(0,10);l_paid.value='false'}
   f.classList.add('on');
 }
-async function saveLesson(){
+function saveLesson(){
   const d={order_id:+l_order.value,lesson_date:l_date.value||null,hours:+l_hours.value||0,amount:+l_amount.value||0,paid:l_paid.value==='true'};
-  if(l_id.value){await api("lessons?id=eq."+l_id.value,{method:"PATCH",headers:H,body:JSON.stringify(d)})}
-  else{await api("lessons",{method:"POST",headers:H,body:JSON.stringify(d)})}
-  closeForm('f_lesson');loadAll();
+  if(l_id.value){const i=lessons.findIndex(x=>x.id==l_id.value);lessons[i]={...lessons[i],...d}}
+  else{d.id=nextId(lessons);lessons.unshift(d)}
+  save('lessons',lessons);closeForm('f_lesson');loadAll();
 }
 
-/* ===== 通用 ===== */
-async function del(table,id){
+function del(table,id){
   if(!confirm('确定删除?'))return;
-  await api(table+"?id=eq."+id,{method:"DELETE",headers:H});
-  loadAll();
+  const arr=table==='teachers'?teachers:table==='parents'?parents:table==='orders'?orders:lessons;
+  const n=arr.filter(x=>x.id!=id);
+  save(table,n);loadAll();
 }
 function closeForm(id){document.getElementById(id).classList.remove('on')}
 
 function stat(){
-  let total=0,month=0;
-  orders.forEach(o=>{
-    total+= (o.commission||0)*(o.received?1:0);
-  });
-  let sum=0,m=0,cnt=0;
+  let sum=0,m=0;
+  const now=new Date().toISOString().slice(0,7);
   lessons.forEach(l=>{
-    const o=orders.find(x=>x.id===l.order_id);
-    if(o){sum+=(o.commission||0)*(l.hours||0);cnt++;
-      const now=new Date().toISOString().slice(0,7);
-      if((l.lesson_date||'').slice(0,7)===now)m+=(o.commission||0)*(l.hours||0);
+    const o=orders.find(x=>x.id==l.order_id);
+    if(o){const v=(o.commission||0)*(l.hours||0);sum+=v;
+      if((l.lesson_date||'').slice(0,7)===now)m+=v;
     }
   });
   s_total.textContent=Math.round(sum);
